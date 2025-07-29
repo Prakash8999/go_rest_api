@@ -35,6 +35,8 @@ func main() {
 	router.HandleFunc("POST /api/students", student.New(storage))
 	router.HandleFunc("GET /api/students/{id}", student.GetById(storage))
 	router.HandleFunc("GET /api/students", student.GetList(storage))
+	router.HandleFunc("PATCH /api/student", student.UpDateStudent(storage))
+	router.HandleFunc("DELETE /api/student/{id}", student.DeleteById(storage))
 	router.HandleFunc("GET /test", func(res http.ResponseWriter, req *http.Request) {
 
 		res.Write([]byte("Hello test"))

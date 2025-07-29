@@ -3,6 +3,7 @@ package sqlite
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/prakash8999/go_rest_apis/internal/types"
 
@@ -113,4 +114,62 @@ func (s *Sqlite) GetStudents() ([]types.Student, error) {
 	}
 
 	return students, nil
+}
+
+func (s *Sqlite) UpdateStudent(update types.UpdateStudentRequest) (string, error) {
+	query := "UPDATE students SET "
+	args := []interface{}{}
+	setParts := []string{}
+
+	if update.Name != nil {
+		setParts = append(setParts, "name = ?")
+		args = append(args, *update.Name)
+	}
+	if update.Email != nil {
+		setParts = append(setParts, "email = ?")
+		args = append(args, *update.Email)
+	}
+	if update.Age != nil {
+		setParts = append(setParts, "age = ?")
+		args = append(args, *update.Age)
+	}
+
+	if len(setParts) == 0 {
+		return "", fmt.Errorf("no fields to update")
+	}
+
+	query += strings.Join(setParts, ", ") + " WHERE id = ?"
+	args = append(args, update.Id)
+
+	stmt, err := s.Db.Prepare(query)
+	if err != nil {
+		return "", err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(args...)
+	if err != nil {
+		return "", err
+	}
+
+	return "student updated successfully", nil
+}
+
+func (s *Sqlite) DeleteStudentById(id int64) (string, error) {
+	// First, get the student to return after deletion
+
+	// Prepare delete statement
+	stmt, err := s.Db.Prepare("DELETE FROM students WHERE id = ?")
+	if err != nil {
+		return "Fail to delete data", fmt.Errorf("failed to prepare delete statement: %w", err)
+	}
+	defer stmt.Close()
+
+	// Execute deletion
+	_, err = stmt.Exec(id)
+	if err != nil {
+		return "Fail to delete data", fmt.Errorf("failed to delete student: %w", err)
+	}
+
+	return "User deleted successfully", nil
 }
